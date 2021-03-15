@@ -69,13 +69,35 @@ const displayMovements = function (movements) {
     const html = `<div class="movements__row">
                   <div class="movements__type movements__type--deposit">2 deposit</div>
                   <div class="movements__date">${i + 1}</div>
-                  <div class="movements__value">${mov}</div>
+                  <div class="movements__value">${mov}€</div>
                   </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
 
-displayMovements(account1.movements);
+const calcDisplayBalance = function (movements) {
+  const balance = movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${balance}€`;
+};
+
+const calcDisplaySummary = function (acc) {
+  const incomes = acc.movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = `${incomes}€`;
+
+  const outcomes = acc.movements
+    .filter(mov => mov < 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumOut.textContent = `${Math.abs(outcomes)}€`;
+
+  const interest = acc.movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * acc.interestRate) / 100)
+    .filter((int, i, arr) => int >= 1)
+    .reduce((acc, int) => acc + int, 0);
+  labelSumInterest.textContent = `${interest}€`;
+};
 
 const createUsernames = function (accs) {
   accs.forEach(function (acc) {
@@ -84,11 +106,33 @@ const createUsernames = function (accs) {
       .split(' ')
       .map(name => name[0])
       .join('');
-    return username;
   });
 };
-
 createUsernames(accounts);
+
+// EVENT HANDLER
+let currentAccount;
+
+btnLogin.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  currentAccount = accounts.find(
+    acc => acc.username === inputLoginUsername.value
+  );
+  console.log(currentAccount);
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }`;
+    containerApp.style.opacity = 100;
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+    displayMovements(currentAccount.movements);
+    calcDisplayBalance(currentAccount.movements);
+    calcDisplaySummary(currentAccount);
+  }
+});
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -112,13 +156,32 @@ const eurToUsd = 1.1;
 
 const movementsUSD = movements.map(mov => mov * eurToUsd);
 
-console.log(movements);
-console.log(movementsUSD);
-
 const movementsDescriptions = movements.map((mov, i) => {
   return `Movement ${i + 1}: you ${
     mov > 0 ? 'deposited' : 'withdrew'
   } ${Math.abs(mov)}`;
 });
 
-console.log(movementsDescriptions);
+const deposits = movements.filter(function (mov) {
+  return mov > 0;
+});
+
+const withdrawals = movements.filter(mov => mov < 0);
+
+const balance = movements.reduce((acc, cur) => acc + cur, 0);
+
+const max = movements.reduce(
+  (acc, mov) => (acc > mov ? acc : mov),
+  movements[0]
+);
+
+const totalDepositsUSD = movements
+  .filter(mov => mov > 0)
+  .map(mov => mov * eurToUsd)
+  .reduce((acc, mov) => acc + mov, 0);
+console.log(totalDepositsUSD);
+
+// const firstWithdrawal = movements.find(mov => mov < 0);
+
+// const account = accounts.find(acc => acc.owner === 'Jessica Davis');
+// console.log(account);
