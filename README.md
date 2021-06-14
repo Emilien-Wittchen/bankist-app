@@ -1,6 +1,6 @@
 # bankist-app
 Bankist application developed during course. 
-You can preview this site here: https://emilien-wittchen.github.io/bankist-app/
+You can preview this site [here](https://forkify-emilien-wittchen.netlify.app/).
 
 ## user: js
 ## PIN: 1111
